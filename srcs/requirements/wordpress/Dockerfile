@@ -5,13 +5,11 @@
 #                                                     +:+ +:+         +:+      #
 #    By: gkehren <gkehren@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/01/15 20:20:30 by gkehren           #+#    #+#              #
-#    Updated: 2023/01/16 01:24:04 by gkehren          ###   ########.fr        #
+#    Created: 2023/01/16 01:09:40 by gkehren           #+#    #+#              #
+#    Updated: 2023/01/16 01:10:20 by gkehren          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 FROM alpine:3.17
 
-RUN apk update && apk upgrade && apk add --no-cache nginx && apk add --no-cache openssl
-
-EXPOSE 443
+EXPOSE 9000
