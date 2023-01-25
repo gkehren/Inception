@@ -4,7 +4,6 @@ services:
   mariadb:
     container_name: mariadb
     build: requirements/mariadb
-    image: mariadb
     env_file:
       - .env
     volumes:
@@ -12,44 +11,48 @@ services:
     networks:
       - inception
     restart: unless-stopped
-    ports:
-      - "3306:3306"
 
   nginx:
     container_name: nginx
     build: requirements/nginx
-    image: nginx
-    depends_on:
-      - mariadb
-    env_file:
-      - .env
+    ports:
+      - "443:443"
     volumes:
-      - WordPress:/var/www/html
+      - WP:/var/www/html
     networks:
       - inception
     restart: unless-stopped
-    ports:
-      - "443:443"
 
   wordpress:
     container_name: wordpress
     build: requirements/wordpress
-    image: wordpress
     env_file:
       - .env
     volumes:
-      - WordPress:/var/www/html
+      - WP:/var/www/html
     networks:
       - inception
     depends_on:
       - mariadb
-    ports:
-      - "8000:80"
     restart: unless-stopped
 
 volumes:
-  WordPress: {}
-  DB: {}
+  WP:
+    driver: local
+    name: WP
+    driver_opts:
+      type: none
+      device: /Users/gkehren/data/www
+      o: bind
+  DB:
+    driver: local
+    name: DB
+    driver_opts:
+      type: none
+      device: /Users/gkehren/data/db
+      o: bind
 
 networks:
-  inception: {}
+  inception:
+    name: inception
+    driver: bridge
