@@ -1,28 +1,33 @@
 #!/bin/sh
 
-target="/etc/php7/php-fpm.d/www.conf"
-grep -E "listen = 127.0.0.1" $target > /dev/null 2>&1
+sleep 5
 
-if [ $? -eq 0 ]; then
-	sed -i "s|.*listen = 127.0.0.1.*|listen = 9000|g" $target
-	echo "env[MYSQL_HOST] = \"${MYSQL_HOST}\"" >> $target
-	echo "env[MYSQL_USER] = \"${MYSQL_USER}\"" >> $target
-	echo "env[MYSQL_PASSWORD] = \"${MYSQL_PASSWORD}\"" >> $target
-	echo "env[MYSQL_DATABASE] = \"${MYSQL_DATABASE}\"" >> $target
-fi
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+mv -f wp-cli.phar /usr/local/bin/wp
 
-if [ ! -f "wp-config.php" ]; then
-	cp /config/wp-config ./wp-config.php
-	sleep 5;
-	if ! mysqladmin -h $MYSQL_HOST -u $MYSQL_USER \
-		--password=$MYSQL_PASSWORD --wait=60 ping > /dev/null; then
-		printf "MySQL is not available.\n"
-		exit 1
-	fi
-	wp core install --url=${WORDPRESS_URL} --title=${WORDPRESS_TITLE} --admin_user=${WORDPRESS_ADMIN_USER} \
-					--admin_password=${WORDPRESS_ADMIN_PASSWORD} --admin_email=${WORDPRESS_ADMIN_EMAIL} --allow-root
+/usr/local/bin/wp --info
+/usr/local/bin/wp core download --path="/var/www/wordpress" --allow-root
 
-	wp user create ${WORDPRESS_USER} ${WORDPRESS_USER_EMAIL} --role=author --user_pass=${WORDPRESS_USER_PASSWORD}
-fi
+rm -f /var/www/wordspress/wp-config.php
+cp ./wp-config.php /var/www/wordpress/wp-config.php
 
-php-fpm7 --nodemonize
+/usr/local/bin/wp core install \
+	--url=${WORDPRESS_URL} \
+	--title=${WORDPRESS_TITLE} \
+	--admin_user=${WORDPRESS_ADMIN_USER} \
+	--admin_password=${WORDPRESS_ADMIN_PASSWORD} \
+	--admin_email=${WORDPRESS_ADMIN_EMAIL} \
+	--path="/var/www/wordpress" \
+	--skip-email \
+	--allow-root
+
+/usr/local/bin/wp user create \
+	${WORDPRESS_USER} \
+	${WORDPRESS_USER_EMAIL} \
+	--role=author \
+	--user_pass=${WORDPRESS_USER_PASSWORD} \
+	--path="/var/www/wordpress" \
+	--allow-root
+
+exec php-fpm7 -F
