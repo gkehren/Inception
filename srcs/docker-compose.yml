@@ -1,9 +1,11 @@
 version: '3.8'
-services:
 
+services:
   mariadb:
     container_name: mariadb
     build: requirements/mariadb
+    ports:
+      - "3306:3306"
     env_file:
       - .env
     volumes:
@@ -18,7 +20,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      - WP:/var/www/html
+      - WP:/var/www/wordpress
     networks:
       - inception
     restart: unless-stopped
@@ -29,7 +31,7 @@ services:
     env_file:
       - .env
     volumes:
-      - WP:/var/www/html
+      - WP:/var/www/wordpress
     networks:
       - inception
     depends_on:
@@ -39,20 +41,16 @@ services:
 volumes:
   WP:
     driver: local
-    name: WP
     driver_opts:
-      type: none
-      device: /Users/gkehren/data/www
+      type: volume
+      device: ${WP_PATH}
       o: bind
   DB:
     driver: local
-    name: DB
     driver_opts:
-      type: none
-      device: /Users/gkehren/data/db
+      type: volume
+      device: ${DB_PATH}
       o: bind
 
 networks:
   inception:
-    name: inception
-    driver: bridge
