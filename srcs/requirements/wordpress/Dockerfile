@@ -6,7 +6,7 @@
 #    By: gkehren <gkehren@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/16 01:09:40 by gkehren           #+#    #+#              #
-#    Updated: 2023/01/26 16:06:46 by gkehren          ###   ########.fr        #
+#    Updated: 2023/01/26 21:14:47 by gkehren          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,3 +28,5 @@ COPY tools/wordpress.sh /tmp/wordpress.sh
 RUN chmod +x /tmp/wordpress.sh
 
 ENTRYPOINT [ "sh", "/tmp/wordpress.sh" ]
+
+EXPOSE 9000

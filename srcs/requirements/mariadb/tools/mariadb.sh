@@ -1,26 +1,16 @@
 #!/bin/sh
 
-cat .setup 2> /dev/null
+#mkdir -p /Users/gkehren/data/wordpress /Users/gkehren/data/database
 
-if [ $? -ne 0 ]; then
-	echo "Setting up MariaDB...";
+/usr/bin/mysql_install_db --user=root --basedir=/usr --datadir=/var/lib/mysql
+/usr/bin/mysqld --user=root --datadir=/var/lib/mysql & sleep 2
 
-	usr/bin/mysqld_safe --datadir=/var/lib/mysql &
+mysql -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABSE}\`;"
+mysql -e "CREATE USER IF NOT EXISTS \`${MYSQL_USER}\`@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABSE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+mysql -e "FLUSH PRIVILEGES;"
 
-	sed -i "s|skip-networking|# skip-networking|g" /etc/my.cnf.d/mariadb-server.cnf
-	sed -i "s|#bind-address\s*=*.|bind-address=0.0.0.0\nport=3306|g" /etc/my.cnf.d/mariadb-server.cnf
-
-	# configure mariadb
-	if ! mysqladmin --wait=30 ping; then
-		echo "MariaDB is not available";
-		exit 1;
-	fi
-
-	eval "echo \"$(cat /tmp/create_db.sql)\"" | mariadb
-	pkill mariadb
-	touch .setup;
-	echo "Done.";
-fi
-
-usr/bin/mysqld_safe --datadir='/var/lib/mysql'
+pkill mysqld
+usr/bin/mysqld --user=root --datadir=/var/lib/mysql
 
