@@ -1,33 +1,23 @@
 #!/bin/sh
 
-sleep 5
+if [ ! -f ./wordpress/wp-config.php ]; then
+	echo "Downloading Wordpress"
+	wget -q https://wordpress.org/latest.tar.gz
+	tar -xzvf latest.tar.gz
+	rm -rf latest.tar.gz
 
-curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-chmod +x wp-cli.phar
-mv -f wp-cli.phar /usr/local/bin/wp
+	# Copy the config file
+	rm -rf /etc/php/7.3/fpm/pool.d/www.conf
+	mv ./www.conf /etc/php/7.3/fpm/pool.d/
 
-/usr/local/bin/wp --info
-/usr/local/bin/wp core download --path="/var/www/wordpress" --allow-root
-
-rm -f /var/www/wordspress/wp-config.php
-cp ./wp-config.php /var/www/wordpress/wp-config.php
-
-/usr/local/bin/wp core install \
-	--url=${WORDPRESS_URL} \
-	--title=${WORDPRESS_TITLE} \
-	--admin_user=${WORDPRESS_ADMIN_USER} \
-	--admin_password=${WORDPRESS_ADMIN_PASSWORD} \
-	--admin_email=${WORDPRESS_ADMIN_EMAIL} \
-	--path="/var/www/wordpress" \
-	--skip-email \
-	--allow-root
-
-/usr/local/bin/wp user create \
-	${WORDPRESS_USER} \
-	${WORDPRESS_USER_EMAIL} \
-	--role=author \
-	--user_pass=${WORDPRESS_USER_PASSWORD} \
-	--path="/var/www/wordpress" \
-	--allow-root
-
-exec php-fpm7 -F
+	# wordpress config
+	cd /var/www/html/wordpress
+	sed -i "s/database_name_here/$MYSQL_DATABASE/g" wp-config-sample.php
+	sed -i "s/localhost/$MYSQL_HOST/g" wp-config-sample.php
+	sed -i "s/username_here/$MYSQL_USER/g" wp-config-sample.php
+	sed -i "s/password_here/$MYSQL_PASSWORD/g" wp-config-sample.php
+	mv wp-config-sample.php wp-config.php
+	echo "Wordpress downloaded"
+else
+	echo "Wordpress already installed"
+fi

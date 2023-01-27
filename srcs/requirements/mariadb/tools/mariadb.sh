@@ -1,16 +1,39 @@
 #!/bin/sh
 
-#mkdir -p /Users/gkehren/data/wordpress /Users/gkehren/data/database
+if [ ! -d "/run/mysqld" ]; then
+	mkdir -p /run/mysqld
+	chown -R mysql:mysql /run/mysqld
+fi
 
-/usr/bin/mysql_install_db --user=root --basedir=/usr --datadir=/var/lib/mysql
-/usr/bin/mysqld --user=root --datadir=/var/lib/mysql & sleep 2
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+	chown -R mysql:mysql /var/lib/mysql
+	mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql --rpm > /dev/null
+	tfile=`mktemp`
+	if [ ! -f "$tfile" ]; then
+		return 1
+	fi
+	cat << EOF > $tfile
+USE mysql;
+FLUSH PRIVILEGES;
 
-mysql -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABSE}\`;"
-mysql -e "CREATE USER IF NOT EXISTS \`${MYSQL_USER}\`@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABSE}\`.* TO \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-mysql -e "FLUSH PRIVILEGES;"
+DELETE FROM mysql.user WHERE USer='';
+DROP DATABASE test;
+DELETE FROM mysql.db WHERE Db='test';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
 
-pkill mysqld
-usr/bin/mysqld --user=root --datadir=/var/lib/mysql
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
+
+CREATE DATABASE $MYSQL_DATABASE CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
+	/usr/bin/mysqld --user=mysql --bootstrap < $tfile
+	rm -f $tfile
+fi
+
+sed -i "s|skip-networking|# skip-networking|g" /etc/my.cnf.d/mariadb-server.cnf
+sed -i "s|.*bind-address\s*=.*|bind-address=0.0.0.0|g" /etc/my.cnf.d/mariadb-server.cnf
+
+exec /usr/bin/mysqld --user=mysql --console
 

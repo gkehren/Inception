@@ -6,27 +6,23 @@
 #    By: gkehren <gkehren@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/16 01:09:40 by gkehren           #+#    #+#              #
-#    Updated: 2023/01/26 21:14:47 by gkehren          ###   ########.fr        #
+#    Updated: 2023/01/27 02:36:19 by gkehren          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 FROM alpine:3.14
 
-RUN apk update && apk upgrade && apk add --no-cache curl \
-	php7 php7-phar php7-json php7-curl php7-fpm php7-mysqli php7-iconv
+RUN apk update && apk upgrade && apk add --no-cache wget \
+		php7 php7-phar php7-json php7-curl php7-fpm php7-mysqli php7-iconv
 
-RUN  rm -f /etc/php7/php-fpm.d/www.conf
-COPY conf/www.conf /etc/php7/php-fpm.d/www.conf
+# Configure PHP
+RUN adduser -S nginx && addgroup -S nginx
+COPY conf/www.conf /var/www/html/www.conf
+RUN mkdir /run/php
 
-RUN mkdir -p /var/www/wordpress
-RUN	adduser -u 82 -D -S -G www-data www-data
-RUN chmod -R 777 /var/www/wordpress
-RUN chown -R www-data:www-data /var/www/wordpress
+WORKDIR /var/www/html/
 
-COPY conf/wp-config.php ./wp-config.php
 COPY tools/wordpress.sh /tmp/wordpress.sh
 RUN chmod +x /tmp/wordpress.sh
-
 ENTRYPOINT [ "sh", "/tmp/wordpress.sh" ]
-
-EXPOSE 9000
+CMD [ "/usr/sbin/php-fpm7", "-F" ]

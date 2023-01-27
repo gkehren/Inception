@@ -4,8 +4,6 @@ services:
   mariadb:
     container_name: mariadb
     build: requirements/mariadb
-    ports:
-      - 3306:3306
     env_file:
       - .env
     volumes:
@@ -20,9 +18,11 @@ services:
     ports:
       - "443:443"
     volumes:
-      - WP:/var/www/wordpress
+      - WP:/var/www/html/wordpress
     networks:
       - inception
+    depends_on:
+      - wordpress
     restart: unless-stopped
 
   wordpress:
@@ -31,7 +31,7 @@ services:
     env_file:
       - .env
     volumes:
-      - WP:/var/www/wordpress
+      - WP:/var/www/html/wordpress
     networks:
       - inception
     depends_on:
