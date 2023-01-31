@@ -6,7 +6,7 @@
 #    By: gkehren <gkehren@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/16 01:09:40 by gkehren           #+#    #+#              #
-#    Updated: 2023/01/27 02:36:19 by gkehren          ###   ########.fr        #
+#    Updated: 2023/01/31 15:04:56 by gkehren          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ RUN apk update && apk upgrade && apk add --no-cache wget \
 
 # Configure PHP
 RUN adduser -S nginx && addgroup -S nginx
-COPY conf/www.conf /var/www/html/www.conf
+COPY conf/www.conf /etc/php7/php-fpm.d/www.conf
 RUN mkdir /run/php
 
 WORKDIR /var/www/html/
@@ -25,4 +25,3 @@ WORKDIR /var/www/html/
 COPY tools/wordpress.sh /tmp/wordpress.sh
 RUN chmod +x /tmp/wordpress.sh
 ENTRYPOINT [ "sh", "/tmp/wordpress.sh" ]
-CMD [ "/usr/sbin/php-fpm7", "-F" ]

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ ! -f ./wordpress/wp-config.php ]; then
+if [ ! -f "./wordpress/wp-config.php" ]; then
 	echo "Downloading Wordpress"
 	wget -q https://wordpress.org/latest.tar.gz
 	tar -xzvf latest.tar.gz
@@ -17,7 +17,7 @@ if [ ! -f ./wordpress/wp-config.php ]; then
 	sed -i "s/username_here/$MYSQL_USER/g" wp-config-sample.php
 	sed -i "s/password_here/$MYSQL_PASSWORD/g" wp-config-sample.php
 	mv wp-config-sample.php wp-config.php
-	echo "Wordpress downloaded"
-else
-	echo "Wordpress already installed"
 fi
+
+echo "Wordpress is ready!"
+/usr/sbin/php-fpm7 -F -R
